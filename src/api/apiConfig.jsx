@@ -29,12 +29,10 @@ export const fetchGenres = async () => {
     const movieGenres = movieGenresRes.data.genres || [];
     const tvGenres = tvGenresRes.data.genres || [];
 
-    const combinedGenres = [...movieGenres, ...tvGenres].reduce((acc, genre) => {
+    return [...movieGenres, ...tvGenres].reduce((acc, genre) => {
       acc[genre.id] = genre.name;
       return acc;
     }, {});
-
-    return combinedGenres;
   } catch (error) {
     console.error('Ошибка при загрузке жанров:', error.response ? error.response.data : error.message);
     return {};

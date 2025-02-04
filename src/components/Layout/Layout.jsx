@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Col, Row } from 'antd';
 
-import { fetchTrending } from '../../api/apiConfig.jsx';
+import { fetchGenres, fetchTrending } from '../../api/apiConfig.jsx';
 import MovieCard from '../MovieCard/MovieCard.jsx';
 
 const Layout = () => {
   const [data, setData] = useState([]);
+  const [genres, setGenres] = useState({});
 
   useEffect(() => {
     fetchTrending('day')
@@ -14,6 +15,14 @@ const Layout = () => {
       })
       .catch((err) => {
         console.log(err, 'err');
+      });
+
+    fetchGenres()
+      .then((genres) => {
+        setGenres(genres);
+      })
+      .catch((err) => {
+        console.log('Ошибка при загрузке жанров:', err);
       });
   }, []);
 
@@ -24,7 +33,7 @@ const Layout = () => {
       <Row gutter={[36, 37]} justify="center">
         {data?.map((item) => (
           <Col key={item?.id} xs={24} sm={12}>
-            <MovieCard item={item} />
+            <MovieCard item={item} genres={genres} />
           </Col>
         ))}
       </Row>

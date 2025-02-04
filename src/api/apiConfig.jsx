@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 export const imagePath = 'https://image.tmdb.org/t/p/w500';
-export const imagePathOriginal = 'https://image.tmdb.org/t/p/original';
 
 const baseUrl = 'https://api.themoviedb.org/3';
 const apiKey = import.meta.env.VITE_API_KEY;
@@ -11,39 +10,6 @@ export const fetchTrending = async (timeWindow = 'day') => {
   const { data } = await axios.get(`${baseUrl}/trending/all/${timeWindow}?api_key=${apiKey}`);
 
   return data?.results;
-};
-
-// MOVIES & SERIES - Details
-
-export const fetchDetails = async (type, id) => {
-  const res = await axios.get(`${baseUrl}/${type}/${id}?api_key=${apiKey}`);
-  return res?.data;
-};
-
-// MOVIES & SERIES - Credits
-
-export const fetchCredits = async (type, id) => {
-  const res = await axios.get(`${baseUrl}/${type}/${id}/credits?api_key=${apiKey}`);
-  return res?.data;
-};
-
-// MOVIES & SERIES - Videos
-
-export const fetchVideos = async (type, id) => {
-  const res = await axios.get(`${baseUrl}/${type}/${id}/videos?api_key=${apiKey}`);
-  return res?.data;
-};
-
-// DISCOVER
-
-export const fetchMovies = async (page, sortBy) => {
-  const res = await axios.get(`${baseUrl}/discover/movie?api_key=${apiKey}&page=${page}&sort_by=${sortBy}`);
-  return res?.data;
-};
-
-export const fetchTvSeries = async (page, sortBy) => {
-  const res = await axios.get(`${baseUrl}/discover/tv?api_key=${apiKey}&page=${page}&sort_by=${sortBy}`);
-  return res?.data;
 };
 
 // SEARCH
@@ -56,6 +22,21 @@ export const searchData = async (query, page) => {
 // GENRES
 
 export const fetchGenres = async () => {
-  const res = await axios.get(`${baseUrl}/genre/movie/list?api_key=${apiKey}`);
-  return res?.data;
+  try {
+    const movieGenresRes = await axios.get(`${baseUrl}/genre/movie/list?api_key=${apiKey}&language=en`);
+    const tvGenresRes = await axios.get(`${baseUrl}/genre/tv/list?api_key=${apiKey}&language=en`);
+
+    const movieGenres = movieGenresRes.data.genres || [];
+    const tvGenres = tvGenresRes.data.genres || [];
+
+    const combinedGenres = [...movieGenres, ...tvGenres].reduce((acc, genre) => {
+      acc[genre.id] = genre.name;
+      return acc;
+    }, {});
+
+    return combinedGenres;
+  } catch (error) {
+    console.error('Ошибка при загрузке жанров:', error.response ? error.response.data : error.message);
+    return {};
+  }
 };

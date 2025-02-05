@@ -12,5 +12,3 @@ export const truncateText = (text, maxLength) => {
 
   return truncated + '...';
 };
-
-export default truncateText();

@@ -15,36 +15,41 @@ export const fetchTrending = async (timeWindow = 'day') => {
 // SEARCH
 
 export const searchData = async (query, page = 1) => {
-  let results = [];
-  let totalResults = 0;
-  let currentPage = page;
+  let movieResults = [];
+  let tvResults = [];
+  let totalMovieResults = 0;
+  let totalTvResults = 0;
 
-  while (results.length < 20) {
-    try {
-      const res = await axios.get(
-        `${baseUrl}/search/multi?api_key=${apiKey}&query=${query}&page=${currentPage}&include_adult=false`
-      );
+  try {
+    const movieRes = await axios.get(
+      `${baseUrl}/search/movie?api_key=${apiKey}&query=${query}&page=${page}&include_adult=false`
+    );
+    movieResults = movieRes?.data?.results || [];
+    totalMovieResults = movieRes?.data?.total_results || 0;
 
-      const filteredResults =
-        res?.data?.results?.filter((item) => item.media_type === 'movie' || item.media_type === 'tv') || [];
-
-      results = [...results, ...filteredResults];
-
-      totalResults = res?.data?.total_results || 0;
-
-      if (filteredResults.length < 20 || results.length >= 20 || currentPage >= Math.ceil(totalResults / 20)) {
-        break;
-      }
-
-      currentPage++;
-    } catch (err) {
-      console.error('API Error:', err.response ? err.response.data : err.message);
-      break;
-    }
+    const tvRes = await axios.get(
+      `${baseUrl}/search/tv?api_key=${apiKey}&query=${query}&page=${page}&include_adult=false`
+    );
+    tvResults = tvRes?.data?.results || [];
+    totalTvResults = tvRes?.data?.total_results || 0;
+  } catch (err) {
+    console.error('API Error:', err.response ? err.response.data : err.message);
+    return {
+      results: [],
+      totalResults: 0,
+    };
   }
 
+  const combinedResults = [...movieResults, ...tvResults];
+
+  combinedResults.sort((a, b) => b.popularity - a.popularity);
+
+  const results = combinedResults.slice(0, 20);
+
+  const totalResults = totalMovieResults + totalTvResults;
+
   return {
-    results: results.slice(0, 20),
+    results,
     totalResults,
   };
 };

@@ -1,5 +1,5 @@
 import { Input } from 'antd';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { debounce } from 'lodash';
 
 import { searchData } from '../../api/apiConfig.jsx';
@@ -15,7 +15,6 @@ const SearchMovies = ({ onSearch, page, query }) => {
         onSearch([], 0, '');
         return;
       }
-
       try {
         setIsLoading(true);
         console.log('Sending request for:', value, 'Page:', currentPage);
@@ -31,16 +30,9 @@ const SearchMovies = ({ onSearch, page, query }) => {
     [page]
   );
 
-  useEffect(() => {
-    if (searchValue.trim()) {
-      debouncedSearch(searchValue, page);
-    }
-  }, [page]);
-
   const handleInputChange = (e) => {
     const newValue = e.target.value;
     setSearchValue(newValue);
-    onSearch([], 0, newValue);
     debouncedSearch(newValue, 1);
   };
 

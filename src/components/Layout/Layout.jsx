@@ -4,6 +4,7 @@ import { useFetchMovies } from '../../hooks/useFetchMovies.jsx';
 import ErrorAlert from '../../utils/ErrorAlert.jsx';
 import LoadingSpinner from '../../utils/LoadingSpinner.jsx';
 import MovieList from '../MovieList/MovieList.jsx';
+import SearchMovies from '../SearchMovies/SearchMovies.jsx';
 
 const Layout = () => {
   const { data, genres, isLoading, error } = useFetchMovies();
@@ -16,6 +17,7 @@ const Layout = () => {
 
       <ErrorAlert message={error} />
       <LoadingSpinner isLoading={isLoading} />
+      <SearchMovies></SearchMovies>
       <MovieList movies={data} genres={genres} />
     </section>
   );

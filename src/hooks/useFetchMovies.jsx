@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { fetchGenres, fetchTrending } from '../api/apiConfig.jsx';
+import { fetchAllMovies, fetchGenres } from '../api/apiConfig.jsx';
 
 export const useFetchMovies = () => {
   const [data, setData] = useState([]);
@@ -12,9 +12,9 @@ export const useFetchMovies = () => {
     setIsLoading(true);
     setError(null);
 
-    Promise.all([fetchTrending('day'), fetchGenres()])
+    Promise.all([fetchAllMovies(1), fetchGenres()])
       .then(([movies, genreList]) => {
-        setData(movies);
+        setData(movies.results);
         setGenres(genreList);
       })
       .catch(() => {

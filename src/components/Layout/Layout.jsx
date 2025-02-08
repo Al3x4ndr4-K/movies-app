@@ -7,10 +7,10 @@ import LoadingSpinner from '../../utils/LoadingSpinner.jsx';
 import MovieList from '../MovieList/MovieList.jsx';
 import SearchMovies from '../SearchMovies/SearchMovies.jsx';
 import PaginationComponent from '../Pagination/Pagination.jsx';
-import { searchData } from '../../api/apiConfig.jsx';
+import { fetchAllMovies, searchData } from '../../api/apiConfig.jsx';
 
 const Layout = () => {
-  const { data: trendingMovies, genres, isLoading, error } = useFetchMovies();
+  const { data: allMovies, genres, isLoading, error } = useFetchMovies();
   const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
@@ -24,13 +24,14 @@ const Layout = () => {
         setMovies(results);
         setTotalResults(totalResults);
       } else {
-        setMovies(trendingMovies);
-        setTotalResults(trendingMovies?.length || 0);
+        const { results, totalResults } = await fetchAllMovies(page);
+        setMovies(results);
+        setTotalResults(totalResults);
       }
     };
 
     fetchMovies();
-  }, [query, page, trendingMovies]);
+  }, [query, page]);
 
   const handleSearch = (results, totalResults = 0, searchQuery = '') => {
     setMovies(results);
@@ -40,6 +41,12 @@ const Layout = () => {
   };
 
   const onPageChange = (newPage) => {
+    const totalPages = Math.ceil(totalResults / pageSize);
+    const maxPages = Math.min(totalPages, 500);
+
+    if (newPage < 1) newPage = 1;
+    if (newPage > maxPages) newPage = maxPages;
+
     setPage(newPage);
   };
 
@@ -48,7 +55,6 @@ const Layout = () => {
       <Offline>
         <ErrorAlert message="Что-то интернета нет... Проверьте соединение!" />
       </Offline>
-
       <ErrorAlert message={error} />
       <LoadingSpinner isLoading={isLoading} />
       <SearchMovies onSearch={handleSearch} query={query} />

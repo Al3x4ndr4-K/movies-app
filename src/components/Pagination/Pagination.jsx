@@ -1,18 +1,19 @@
 import { Pagination } from 'antd';
 
-const PaginationComponent = ({ currentPage, totalResults, pageSize, onPageChange }) => {
+const PaginationComponent = ({ currentPage, totalResults, onPageChange, pageSize }) => {
   const totalPages = Math.ceil(totalResults / pageSize);
+  const maxPages = Math.min(totalPages, 500);
 
   return (
-    <Pagination
-      current={currentPage}
-      total={totalResults}
-      pageSize={20}
-      onChange={onPageChange}
-      showSizeChanger={false}
-      showTotal={(total) => `Total ${total} items`}
-      hideOnSinglePage={totalPages <= 1}
-    />
+    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+      <Pagination
+        current={currentPage}
+        total={maxPages * pageSize}
+        pageSize={20}
+        onChange={onPageChange}
+        showSizeChanger={false}
+      />
+    </div>
   );
 };
 

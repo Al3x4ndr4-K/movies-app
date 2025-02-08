@@ -17,7 +17,6 @@ const SearchMovies = ({ onSearch, page, query }) => {
       }
       try {
         setIsLoading(true);
-        console.log('Sending request for:', value, 'Page:', currentPage);
         const res = await searchData(value, currentPage);
         onSearch(res?.results || [], res?.totalResults || 0, value);
       } catch (err) {
@@ -26,7 +25,7 @@ const SearchMovies = ({ onSearch, page, query }) => {
       } finally {
         setIsLoading(false);
       }
-    }, 700),
+    }, 800),
     [page]
   );
 

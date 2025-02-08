@@ -5,11 +5,24 @@ export const imagePath = 'https://image.tmdb.org/t/p/w500';
 const baseUrl = 'https://api.themoviedb.org/3';
 const apiKey = import.meta.env.VITE_API_KEY;
 
-// TRENDING
-export const fetchTrending = async (timeWindow = 'day') => {
-  const { data } = await axios.get(`${baseUrl}/trending/all/${timeWindow}?api_key=${apiKey}`);
-  console.log(data?.results);
-  return data?.results;
+// ALL MOVIES
+export const fetchAllMovies = async (page = 1) => {
+  try {
+    if (page < 1) page = 1;
+    if (page > 500) page = 500;
+
+    const { data } = await axios.get(`${baseUrl}/discover/movie?api_key=${apiKey}&page=${page}&include_adult=false`);
+    return {
+      results: data?.results || [],
+      totalResults: data?.total_results || 0,
+    };
+  } catch (err) {
+    console.error('API Error:', err.response ? err.response.data : err.message);
+    return {
+      results: [],
+      totalResults: 0,
+    };
+  }
 };
 
 // SEARCH
@@ -33,7 +46,7 @@ export const searchData = async (query, page = 1) => {
     tvResults = tvRes?.data?.results || [];
     totalTvResults = tvRes?.data?.total_results || 0;
   } catch (err) {
-    console.error('API Error:', err.response ? err.response.data : err.message);
+    alert('API Error:', err.response ? err.response.data : err.message);
     return {
       results: [],
       totalResults: 0,

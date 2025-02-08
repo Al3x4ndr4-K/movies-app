@@ -15,18 +15,27 @@ const Layout = () => {
   const [page, setPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const [query, setQuery] = useState('');
+  const [isPageLoading, setIsPageLoading] = useState(false);
   const pageSize = 20;
 
   useEffect(() => {
     const fetchMovies = async () => {
-      if (query) {
-        const { results, totalResults } = await searchData(query, page);
-        setMovies(results);
-        setTotalResults(totalResults);
-      } else {
-        const { results, totalResults } = await fetchAllMovies(page);
-        setMovies(results);
-        setTotalResults(totalResults);
+      setIsPageLoading(true);
+
+      try {
+        if (query) {
+          const { results, totalResults } = await searchData(query, page);
+          setMovies(results);
+          setTotalResults(totalResults);
+        } else {
+          const { results, totalResults } = await fetchAllMovies(page);
+          setMovies(results);
+          setTotalResults(totalResults);
+        }
+      } catch (err) {
+        console.error('Ошибка загрузки данных:', err);
+      } finally {
+        setIsPageLoading(false);
       }
     };
 
@@ -56,7 +65,7 @@ const Layout = () => {
         <ErrorAlert message="Что-то интернета нет... Проверьте соединение!" />
       </Offline>
       <ErrorAlert message={error} />
-      <LoadingSpinner isLoading={isLoading} />
+      <LoadingSpinner isLoading={isLoading || isPageLoading} />
       <SearchMovies onSearch={handleSearch} query={query} />
       <MovieList movies={movies} genres={genres} />
       <PaginationComponent

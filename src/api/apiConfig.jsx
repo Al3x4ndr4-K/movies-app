@@ -46,7 +46,7 @@ export const searchData = async (query, page = 1) => {
     tvResults = tvRes?.data?.results || [];
     totalTvResults = tvRes?.data?.total_results || 0;
   } catch (err) {
-    alert('API Error:', err.response ? err.response.data : err.message);
+    console.log('API Error:', err.response ? err.response.data : err.message);
     return {
       results: [],
       totalResults: 0,

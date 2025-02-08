@@ -1,4 +1,5 @@
 import { Offline } from 'react-detect-offline';
+import { useState } from 'react';
 
 import { useFetchMovies } from '../../hooks/useFetchMovies.jsx';
 import ErrorAlert from '../../utils/ErrorAlert.jsx';
@@ -7,7 +8,12 @@ import MovieList from '../MovieList/MovieList.jsx';
 import SearchMovies from '../SearchMovies/SearchMovies.jsx';
 
 const Layout = () => {
-  const { data, genres, isLoading, error } = useFetchMovies();
+  const { data: trendingMovies, genres, isLoading, error } = useFetchMovies();
+  const [searchResults, setSearchResults] = useState(null);
+
+  const handleSearch = (results) => {
+    setSearchResults(results);
+  };
 
   return (
     <section style={{ margin: '0 auto', maxWidth: '1000px' }}>
@@ -17,8 +23,8 @@ const Layout = () => {
 
       <ErrorAlert message={error} />
       <LoadingSpinner isLoading={isLoading} />
-      <SearchMovies></SearchMovies>
-      <MovieList movies={data} genres={genres} />
+      <SearchMovies onSearch={handleSearch} />
+      <MovieList movies={searchResults || trendingMovies} genres={genres} />
     </section>
   );
 };

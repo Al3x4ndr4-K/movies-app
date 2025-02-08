@@ -20,6 +20,7 @@ const MovieCard = ({ item, genres = {} }) => {
       <Image
         src={`${imagePath}/${item?.poster_path}`}
         alt={item?.title || item?.name}
+        fallback={'https://dummyimage.com/183x281/8f8f8f/ffffff&text=No+image'}
         style={{
           flexShrink: 0,
           width: '183px',

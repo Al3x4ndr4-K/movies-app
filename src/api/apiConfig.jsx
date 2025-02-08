@@ -14,9 +14,12 @@ export const fetchTrending = async (timeWindow = 'day') => {
 
 // SEARCH
 
-export const searchData = async (query, page) => {
+export const searchData = async (query, page = 1) => {
   const res = await axios.get(`${baseUrl}/search/multi?api_key=${apiKey}&query=${query}&page=${page}`);
-  return res?.data;
+  const filteredResults =
+    res?.data?.results?.filter((item) => item.media_type === 'movie' || item.media_type === 'tv') || [];
+
+  return { results: filteredResults };
 };
 
 // GENRES

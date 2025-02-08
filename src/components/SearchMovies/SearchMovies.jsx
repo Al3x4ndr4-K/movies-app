@@ -5,45 +5,51 @@ import { debounce } from 'lodash';
 import { searchData } from '../../api/apiConfig.jsx';
 import LoadingSpinner from '../../utils/LoadingSpinner.jsx';
 
-const SearchMovies = ({ onSearch }) => {
-  const [searchValue, setSearchValue] = useState('');
+const SearchMovies = ({ onSearch, page, query }) => {
+  const [searchValue, setSearchValue] = useState(query);
   const [isLoading, setIsLoading] = useState(false);
 
   const debouncedSearch = useCallback(
-    debounce(async (query) => {
-      if (!query.trim()) {
-        onSearch(null);
+    debounce(async (value, currentPage) => {
+      if (!value.trim()) {
+        onSearch([], 0, '');
         return;
       }
 
       try {
         setIsLoading(true);
-        const res = await searchData(query);
-        onSearch(res?.results || []);
+        console.log('Sending request for:', value, 'Page:', currentPage);
+        const res = await searchData(value, currentPage);
+        onSearch(res?.results || [], res?.totalResults || 0, value);
       } catch (err) {
         console.error('API Error:', err.response ? err.response.data : err.message);
-        onSearch([]);
+        onSearch([], 0, '');
       } finally {
         setIsLoading(false);
       }
     }, 700),
-    []
+    [page]
   );
 
   useEffect(() => {
-    debouncedSearch(searchValue);
+    if (searchValue.trim()) {
+      debouncedSearch(searchValue, page);
+    }
+  }, [page]);
 
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [searchValue, debouncedSearch]);
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    setSearchValue(newValue);
+    onSearch([], 0, newValue);
+    debouncedSearch(newValue, 1);
+  };
 
   return (
     <div>
       <Input
         placeholder="Type to search..."
         value={searchValue}
-        onChange={(e) => setSearchValue(e.target.value)}
+        onChange={handleInputChange}
         style={{ width: '100%', marginBottom: '20px' }}
       />
       {isLoading && <LoadingSpinner />}

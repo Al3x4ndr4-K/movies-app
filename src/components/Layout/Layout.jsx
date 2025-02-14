@@ -1,5 +1,6 @@
 import { Offline } from 'react-detect-offline';
 import { useEffect, useState } from 'react';
+import { Tabs } from 'antd';
 
 import { useFetchMovies } from '../../hooks/useFetchMovies.jsx';
 import ErrorAlert from '../../utils/ErrorAlert.jsx';
@@ -16,7 +17,14 @@ const Layout = () => {
   const [totalResults, setTotalResults] = useState(0);
   const [query, setQuery] = useState('');
   const [isPageLoading, setIsPageLoading] = useState(false);
+  const [ratedMovies, setRatedMovies] = useState({});
+
   const pageSize = 20;
+
+  useEffect(() => {
+    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
+    setRatedMovies(savedRatings);
+  }, []);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -59,20 +67,60 @@ const Layout = () => {
     setPage(newPage);
   };
 
+  const handleRatingChange = (movieId, rating) => {
+    setRatedMovies((prevRatings) => {
+      const updatedRatings = { ...prevRatings };
+
+      if (rating > 0) {
+        updatedRatings[movieId] = rating;
+      } else {
+        delete updatedRatings[movieId];
+      }
+
+      localStorage.setItem('rated_movies', JSON.stringify(updatedRatings));
+      return updatedRatings;
+    });
+  };
+
   return (
     <section style={{ margin: '0 auto', maxWidth: '1000px' }}>
-      <Offline>
-        <ErrorAlert message="Что-то интернета нет... Проверьте соединение!" />
-      </Offline>
-      <ErrorAlert message={error} />
       <LoadingSpinner isLoading={isLoading || isPageLoading} />
-      <SearchMovies onSearch={handleSearch} query={query} />
-      <MovieList movies={movies} genres={genres} />
-      <PaginationComponent
-        currentPage={page}
-        totalResults={totalResults}
-        pageSize={pageSize}
-        onPageChange={onPageChange}
+      <Tabs
+        defaultActiveKey="search"
+        items={[
+          {
+            key: 'search',
+            label: 'Search',
+            children: (
+              <>
+                <SearchMovies onSearch={handleSearch} query={query} />
+                <Offline>
+                  <ErrorAlert message="Что-то интернета нет... Проверьте соединение!" />
+                </Offline>
+                <ErrorAlert message={error} />
+                <MovieList
+                  movies={movies}
+                  genres={genres}
+                  onRateChange={handleRatingChange}
+                  ratedMovies={ratedMovies}
+                />
+                <PaginationComponent
+                  currentPage={page}
+                  totalResults={totalResults}
+                  pageSize={pageSize}
+                  onPageChange={onPageChange}
+                />
+              </>
+            ),
+          },
+          {
+            key: 'rated',
+            label: 'Rated',
+            children: (
+              <MovieList movies={movies} genres={genres} onRateChange={handleRatingChange} ratedMovies={ratedMovies} />
+            ),
+          },
+        ]}
       />
     </section>
   );

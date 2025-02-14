@@ -1,4 +1,5 @@
-import { Image, Typography } from 'antd';
+import { Image, Rate, Typography } from 'antd';
+import { useEffect, useState } from 'react';
 
 import { imagePath } from '../../api/apiConfig.jsx';
 import MovieDate from '../MovieDate/MovieDate.jsx';
@@ -8,6 +9,28 @@ import MovieOverview from '../MovieOverview/MovieOverview.jsx';
 const { Title } = Typography;
 
 const MovieCard = ({ item, genres = {} }) => {
+  const [rating, setRating] = useState(0);
+
+  useEffect(() => {
+    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
+    if (savedRatings[item.id]) {
+      setRating(savedRatings[item.id]);
+    }
+  }, [item.id]);
+
+  const handleRateChange = (value) => {
+    setRating(value);
+    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
+
+    if (value > 0) {
+      savedRatings[item.id] = value;
+    } else {
+      delete savedRatings[item.id];
+    }
+
+    localStorage.setItem('rated_movies', JSON.stringify(savedRatings));
+  };
+
   return (
     <div
       style={{
@@ -34,6 +57,7 @@ const MovieCard = ({ item, genres = {} }) => {
         <MovieDate releaseDate={item?.release_date} firstAirDate={item?.first_air_date} />
         <MovieGenres genreIds={item?.genre_ids} genres={genres} />
         <MovieOverview overview={item?.overview} />
+        <Rate value={rating} onChange={handleRateChange} count={10} />
       </div>
     </div>
   );

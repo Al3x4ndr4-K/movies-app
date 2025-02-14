@@ -39,6 +39,7 @@ const SearchMovies = ({ onSearch, page, query }) => {
     <div>
       <Input
         placeholder="Type to search..."
+        id={Math.random()}
         value={searchValue}
         onChange={handleInputChange}
         style={{ width: '100%', marginBottom: '20px' }}

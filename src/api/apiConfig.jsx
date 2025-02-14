@@ -86,3 +86,16 @@ export const fetchGenres = async () => {
     return {};
   }
 };
+
+// RATED MOVIES
+export const getRatedMovies = async (sessionId) => {
+  try {
+    const { data } = await axios.get(
+      `${baseUrl}/guest_session/${sessionId}/rated/movies?api_key=${apiKey}&language=en`
+    );
+    return data;
+  } catch (error) {
+    console.error('Error fetching rated movies', error);
+    return { results: [] };
+  }
+};

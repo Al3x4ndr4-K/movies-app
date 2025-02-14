@@ -1,14 +1,14 @@
 import { Image, Rate, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 
-import { imagePath } from '../../api/apiConfig.jsx';
+import { getValidGuestSession, imagePath, sendRating } from '../../api/apiConfig.jsx';
 import MovieDate from '../MovieDate/MovieDate.jsx';
 import MovieGenres from '../MovieGenres/MovieGenres.jsx';
 import MovieOverview from '../MovieOverview/MovieOverview.jsx';
 
 const { Title } = Typography;
 
-const MovieCard = ({ item, genres = {} }) => {
+const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
   const [rating, setRating] = useState(0);
 
   const ratingValue = Number(item?.vote_average).toFixed(1);
@@ -27,17 +27,34 @@ const MovieCard = ({ item, genres = {} }) => {
     }
   }, [item.id]);
 
-  const handleRateChange = (value) => {
+  const handleRateChange = async (value) => {
     setRating(value);
-    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
 
+    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
     if (value > 0) {
+      const guestSessionId = await getValidGuestSession();
+      if (!guestSessionId) {
+        console.error('Гостевая сессия недоступна');
+        return;
+      }
+
+      const response = await sendRating(item.id, value, guestSessionId);
+      if (response?.success) {
+        console.log(`Рейтинг ${value} успешно отправлен для фильма ID ${item.id}`);
+      } else {
+        console.error('Не удалось отправить рейтинг');
+      }
+
       savedRatings[item.id] = value;
     } else {
       delete savedRatings[item.id];
+      console.log(`Рейтинг удалён для фильма ID ${item.id}`);
     }
-
     localStorage.setItem('rated_movies', JSON.stringify(savedRatings));
+
+    if (onUpdateRatedMovies) {
+      onUpdateRatedMovies();
+    }
   };
 
   return (

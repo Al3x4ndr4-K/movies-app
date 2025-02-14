@@ -6,6 +6,7 @@ const baseUrl = 'https://api.themoviedb.org/3';
 const apiKey = import.meta.env.VITE_API_KEY;
 
 // ALL MOVIES
+
 export const fetchAllMovies = async (page = 1) => {
   try {
     if (page < 1) page = 1;
@@ -87,15 +88,61 @@ export const fetchGenres = async () => {
   }
 };
 
-// RATED MOVIES
-export const getRatedMovies = async (sessionId) => {
+//GUEST SESSION
+
+export const fetchGuestSession = async () => {
   try {
-    const { data } = await axios.get(
-      `${baseUrl}/guest_session/${sessionId}/rated/movies?api_key=${apiKey}&language=en`
-    );
+    const { data } = await axios.get(`${baseUrl}/authentication/guest_session/new?api_key=${apiKey}`);
+    const guestSessionId = data?.guest_session_id;
+
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+
+    localStorage.setItem('guestSessionId', guestSessionId);
+    localStorage.setItem('sessionExpiresAt', expiresAt);
+
+    console.log('Guest Session created:', guestSessionId);
+    return guestSessionId;
+  } catch (error) {
+    console.error('Error fetching guest session:', error.response ? error.response.data : error.message);
+    return null;
+  }
+};
+
+export const getValidGuestSession = async () => {
+  const storedSessionId = localStorage.getItem('guestSessionId');
+  const storedExpiresAt = localStorage.getItem('sessionExpiresAt');
+
+  if (storedSessionId && storedExpiresAt) {
+    const currentTime = Date.now();
+    const expiresAt = parseInt(storedExpiresAt, 10);
+
+    if (currentTime < expiresAt) {
+      console.log('Using existing guest session:', storedSessionId);
+      return storedSessionId;
+    }
+  }
+
+  console.log('Creating a new guest session...');
+  return fetchGuestSession();
+};
+
+export const sendRating = async (movieId, rating, guestSessionId) => {
+  try {
+    const url = `${baseUrl}/movie/${movieId}/rating?api_key=${apiKey}&guest_session_id=${guestSessionId}`;
+    const body = {
+      value: rating,
+    };
+
+    const { data } = await axios.post(url, body, {
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+      },
+    });
+
+    console.log('Rating Response:', data);
     return data;
   } catch (error) {
-    console.error('Error fetching rated movies', error);
-    return { results: [] };
+    console.error('Error sending rating:', error.response ? error.response.data : error.message);
+    return null;
   }
 };

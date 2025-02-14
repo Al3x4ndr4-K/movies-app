@@ -16,15 +16,10 @@ const Layout = () => {
   const [page, setPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const [query, setQuery] = useState('');
+  const [ratedMovies, setRatedMovies] = useState([]);
   const [isPageLoading, setIsPageLoading] = useState(false);
-  const [ratedMovies, setRatedMovies] = useState({});
 
   const pageSize = 20;
-
-  useEffect(() => {
-    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
-    setRatedMovies(savedRatings);
-  }, []);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -50,6 +45,18 @@ const Layout = () => {
     fetchMovies();
   }, [query, page]);
 
+  const fetchRatedMovies = () => {
+    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
+    const ratedMovieIds = Object.keys(savedRatings).map(Number); // Преобразуем ключи в числа
+    console.log('Обновлён список оценённых фильмов:', ratedMovieIds);
+
+    setRatedMovies(ratedMovieIds);
+  };
+
+  useEffect(() => {
+    fetchRatedMovies();
+  }, []);
+
   const handleSearch = (results, totalResults = 0, searchQuery = '') => {
     setMovies(results);
     setTotalResults(totalResults);
@@ -65,21 +72,6 @@ const Layout = () => {
     if (newPage > maxPages) newPage = maxPages;
 
     setPage(newPage);
-  };
-
-  const handleRatingChange = (movieId, rating) => {
-    setRatedMovies((prevRatings) => {
-      const updatedRatings = { ...prevRatings };
-
-      if (rating > 0) {
-        updatedRatings[movieId] = rating;
-      } else {
-        delete updatedRatings[movieId];
-      }
-
-      localStorage.setItem('rated_movies', JSON.stringify(updatedRatings));
-      return updatedRatings;
-    });
   };
 
   return (
@@ -98,12 +90,7 @@ const Layout = () => {
                   <ErrorAlert message="Что-то интернета нет... Проверьте соединение!" />
                 </Offline>
                 <ErrorAlert message={error} />
-                <MovieList
-                  movies={movies}
-                  genres={genres}
-                  onRateChange={handleRatingChange}
-                  ratedMovies={ratedMovies}
-                />
+                <MovieList movies={movies} genres={genres} />
                 <PaginationComponent
                   currentPage={page}
                   totalResults={totalResults}
@@ -117,7 +104,12 @@ const Layout = () => {
             key: 'rated',
             label: 'Rated',
             children: (
-              <MovieList movies={movies} genres={genres} onRateChange={handleRatingChange} ratedMovies={ratedMovies} />
+              <MovieList
+                movies={allMovies.filter((movie) => ratedMovies.includes(movie.id))}
+                genres={genres}
+                showRatedOnly={true}
+                onUpdateRatedMovies={fetchRatedMovies}
+              />
             ),
           },
         ]}

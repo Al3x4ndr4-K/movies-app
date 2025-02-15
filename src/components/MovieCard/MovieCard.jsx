@@ -10,6 +10,7 @@ const { Title } = Typography;
 
 const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
   const [rating, setRating] = useState(0);
+  const [isRated, setIsRated] = useState(false);
 
   const ratingValue = Number(item?.vote_average).toFixed(1);
 
@@ -24,10 +25,16 @@ const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
     const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
     if (savedRatings[item.id]) {
       setRating(savedRatings[item.id]);
+      setIsRated(true);
     }
   }, [item.id]);
 
   const handleRateChange = async (value) => {
+    if (isRated) {
+      console.log('Рейтинг уже установлен и не может быть изменён');
+      return;
+    }
+
     setRating(value);
 
     const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
@@ -41,6 +48,7 @@ const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
       const response = await sendRating(item.id, value, guestSessionId);
       if (response?.success) {
         console.log(`Рейтинг ${value} успешно отправлен для фильма ID ${item.id}`);
+        setIsRated(true);
       } else {
         console.error('Не удалось отправить рейтинг');
       }
@@ -50,6 +58,7 @@ const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
       delete savedRatings[item.id];
       console.log(`Рейтинг удалён для фильма ID ${item.id}`);
     }
+
     localStorage.setItem('rated_movies', JSON.stringify(savedRatings));
 
     if (onUpdateRatedMovies) {
@@ -85,7 +94,7 @@ const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
         <MovieDate releaseDate={item?.release_date} firstAirDate={item?.first_air_date} />
         <MovieGenres genreIds={item?.genre_ids} genres={genres} />
         <MovieOverview overview={item?.overview} />
-        <Rate value={rating} onChange={handleRateChange} count={10} />
+        <Rate value={rating} onChange={handleRateChange} count={10} disabled={isRated} />
         <div
           style={{
             position: 'absolute',

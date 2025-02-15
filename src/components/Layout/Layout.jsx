@@ -1,6 +1,7 @@
 import { Offline } from 'react-detect-offline';
 import { useEffect, useState } from 'react';
 import { Tabs } from 'antd';
+import axios from 'axios';
 
 import { useFetchMovies } from '../../hooks/useFetchMovies.jsx';
 import ErrorAlert from '../../utils/ErrorAlert.jsx';
@@ -8,7 +9,7 @@ import LoadingSpinner from '../../utils/LoadingSpinner.jsx';
 import MovieList from '../MovieList/MovieList.jsx';
 import SearchMovies from '../SearchMovies/SearchMovies.jsx';
 import PaginationComponent from '../Pagination/Pagination.jsx';
-import { fetchAllMovies, searchData } from '../../api/apiConfig.jsx';
+import { apiKey, baseUrl, fetchAllMovies, getValidGuestSession, searchData } from '../../api/apiConfig.jsx';
 
 const Layout = () => {
   const { data: allMovies, genres, isLoading, error } = useFetchMovies();
@@ -18,8 +19,28 @@ const Layout = () => {
   const [query, setQuery] = useState('');
   const [ratedMovies, setRatedMovies] = useState([]);
   const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isRatedLoading, setIsRatedLoading] = useState(false);
+  const [ratedPage, setRatedPage] = useState(1);
+  const [totalRatedResults, setTotalRatedResults] = useState(0);
 
   const pageSize = 20;
+
+  useEffect(() => {
+    const initializeGuestSession = async () => {
+      try {
+        const guestSessionId = await getValidGuestSession();
+        if (!guestSessionId) {
+          console.error('Не удалось инициализировать гостевую сессию');
+        } else {
+          console.log('Гостевая сессия успешно создана:', guestSessionId);
+        }
+      } catch (error) {
+        console.error('Ошибка при создании гостевой сессии:', error);
+      }
+    };
+
+    initializeGuestSession();
+  }, []);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -45,12 +66,57 @@ const Layout = () => {
     fetchMovies();
   }, [query, page]);
 
-  const fetchRatedMovies = () => {
+  useEffect(() => {
     const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
-    const ratedMovieIds = Object.keys(savedRatings).map(Number); // Преобразуем ключи в числа
-    console.log('Обновлён список оценённых фильмов:', ratedMovieIds);
+    if (Object.keys(savedRatings).length > 0) {
+      fetchRatedMovies();
+    } else {
+      console.log('Нет оценённых фильмов в localStorage');
+      setIsRatedLoading(false);
+    }
+  }, []);
 
-    setRatedMovies(ratedMovieIds);
+  const fetchRatedMovies = async (page = 1) => {
+    setIsRatedLoading(true);
+
+    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
+    if (Object.keys(savedRatings).length === 0) {
+      console.log('Нет оценённых фильмов в localStorage');
+      setIsRatedLoading(false);
+      return;
+    }
+
+    const guestSessionId = await getValidGuestSession();
+    if (!guestSessionId) {
+      console.error('Гостевая сессия недоступна');
+      setIsRatedLoading(false);
+      return;
+    }
+
+    try {
+      const url = `${baseUrl}/guest_session/${guestSessionId}/rated/movies?api_key=${apiKey}&page=${page}`;
+      const { data } = await axios.get(url);
+
+      if (data.results && data.results.length > 0) {
+        console.log('Оценённые фильмы:', data.results);
+        setRatedMovies(data.results);
+        setTotalRatedResults(data.total_results);
+      } else {
+        console.log('Нет оценённых фильмов');
+        setRatedMovies([]);
+        setTotalRatedResults(0);
+      }
+    } catch (error) {
+      if (error.response?.status === 404) {
+        console.log('Нет оценённых фильмов (404)');
+        setRatedMovies([]);
+        setTotalRatedResults(0);
+      } else {
+        console.error('Ошибка при загрузке оценённых фильмов:', error.response ? error.response.data : error.message);
+      }
+    } finally {
+      setIsRatedLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -77,8 +143,16 @@ const Layout = () => {
   return (
     <section style={{ margin: '0 auto', maxWidth: '1000px' }}>
       <LoadingSpinner isLoading={isLoading || isPageLoading} />
+      <Offline>
+        <ErrorAlert message="Что-то интернета нет... Проверьте соединение!" />
+      </Offline>
       <Tabs
         defaultActiveKey="search"
+        onChange={(key) => {
+          if (key === 'rated') {
+            fetchRatedMovies(ratedPage);
+          }
+        }}
         items={[
           {
             key: 'search',
@@ -86,9 +160,6 @@ const Layout = () => {
             children: (
               <>
                 <SearchMovies onSearch={handleSearch} query={query} />
-                <Offline>
-                  <ErrorAlert message="Что-то интернета нет... Проверьте соединение!" />
-                </Offline>
                 <ErrorAlert message={error} />
                 <MovieList movies={movies} genres={genres} />
                 <PaginationComponent
@@ -104,12 +175,25 @@ const Layout = () => {
             key: 'rated',
             label: 'Rated',
             children: (
-              <MovieList
-                movies={allMovies.filter((movie) => ratedMovies.includes(movie.id))}
-                genres={genres}
-                showRatedOnly={true}
-                onUpdateRatedMovies={fetchRatedMovies}
-              />
+              <>
+                <LoadingSpinner isLoading={isRatedLoading} />
+                <ErrorAlert message={error} />
+                <MovieList
+                  movies={ratedMovies}
+                  genres={genres}
+                  showRatedOnly={true}
+                  onUpdateRatedMovies={fetchRatedMovies}
+                />
+                <PaginationComponent
+                  currentPage={ratedPage}
+                  totalResults={totalRatedResults}
+                  pageSize={20}
+                  onPageChange={(newPage) => {
+                    setRatedPage(newPage);
+                    fetchRatedMovies(newPage);
+                  }}
+                />
+              </>
             ),
           },
         ]}

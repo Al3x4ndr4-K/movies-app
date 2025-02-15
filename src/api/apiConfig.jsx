@@ -2,8 +2,8 @@ import axios from 'axios';
 
 export const imagePath = 'https://image.tmdb.org/t/p/w500';
 
-const baseUrl = 'https://api.themoviedb.org/3';
-const apiKey = import.meta.env.VITE_API_KEY;
+export const baseUrl = 'https://api.themoviedb.org/3';
+export const apiKey = import.meta.env.VITE_API_KEY;
 
 // ALL MOVIES
 
@@ -117,12 +117,12 @@ export const getValidGuestSession = async () => {
     const expiresAt = parseInt(storedExpiresAt, 10);
 
     if (currentTime < expiresAt) {
-      console.log('Using existing guest session:', storedSessionId);
+      console.log('Используем существующую гостевую сессию:', storedSessionId);
       return storedSessionId;
     }
   }
 
-  console.log('Creating a new guest session...');
+  console.log('Создаём новую гостевую сессию...');
   return fetchGuestSession();
 };
 

@@ -7,7 +7,7 @@ import LoadingSpinner from '../../Spinner/LoadingSpinner.jsx';
 import ShowErrorNotification from '../../../notifications/ShowErrorNotification.jsx';
 
 const RatedTab = () => {
-  const { ratedMovies, totalRatedResults, ratedPage, setRatedPage, error, genres, isLoading } =
+  const { ratedMovies, totalRatedResults, ratedPage, setRatedPage, error, genres, isLoading, fetchRatedMovies } =
     useContext(RatedMoviesContext);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const RatedTab = () => {
   return (
     <>
       {isLoading && <LoadingSpinner />}
-      <MovieList movies={ratedMovies} genres={genres} />
+      <MovieList movies={ratedMovies} genres={genres} fetchRatedMovies={fetchRatedMovies} />
       <PaginationComponent
         currentPage={ratedPage}
         totalResults={totalRatedResults}

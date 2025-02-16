@@ -1,8 +1,12 @@
 import { Col, Empty, Row } from 'antd';
+import { useContext } from 'react';
 
 import MovieCard from '../MovieCard/MovieCard.jsx';
+import { RatedMoviesContext } from '../../context/RatedMoviesContext.jsx';
 
-const MovieList = ({ movies, genres, onUpdateRatedMovies }) => {
+const MovieList = ({ movies, genres }) => {
+  const { fetchRatedMovies } = useContext(RatedMoviesContext);
+
   if (!movies || movies.length === 0) {
     return <Empty description="No results found" />;
   }
@@ -13,7 +17,7 @@ const MovieList = ({ movies, genres, onUpdateRatedMovies }) => {
     <Row gutter={[36, 37]} justify="center">
       {displayedMovies?.map((item) => (
         <Col key={item?.id} xs={24} sm={12}>
-          <MovieCard item={item} genres={genres} onUpdateRatedMovies={onUpdateRatedMovies} />
+          <MovieCard item={item} genres={genres} onUpdateRatedMovies={fetchRatedMovies} />
         </Col>
       ))}
     </Row>

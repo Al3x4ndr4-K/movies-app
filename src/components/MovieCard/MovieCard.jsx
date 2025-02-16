@@ -5,14 +5,14 @@ import { getValidGuestSession, imagePath, sendRating } from '../../api/apiConfig
 import MovieDate from '../MovieDate/MovieDate.jsx';
 import MovieGenres from '../MovieGenres/MovieGenres.jsx';
 import MovieOverview from '../MovieOverview/MovieOverview.jsx';
+import ShowErrorNotification from '../../notifications/ShowErrorNotification.jsx';
+import ShowInfoNotification from '../../notifications/ShowInfoNotification.jsx';
 
 const { Title } = Typography;
 
 const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
   const [rating, setRating] = useState(0);
   const [isRated, setIsRated] = useState(false);
-  const [error, setError] = useState(null);
-  const [info, setInfo] = useState(null);
 
   const ratingValue = Number(item?.vote_average).toFixed(1);
 
@@ -32,8 +32,12 @@ const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
   }, [item.id]);
 
   const handleRateChange = async (value) => {
+    if (onUpdateRatedMovies) {
+      onUpdateRatedMovies();
+    }
+
     if (isRated) {
-      setError('Рейтинг уже установлен и не может быть изменён');
+      ShowErrorNotification('Рейтинг уже установлен и не может быть изменён');
       return;
     }
 
@@ -43,22 +47,22 @@ const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
     if (value > 0) {
       const guestSessionId = await getValidGuestSession();
       if (!guestSessionId) {
-        setError('Гостевая сессия недоступна');
+        ShowErrorNotification('Гостевая сессия недоступна');
         return;
       }
 
       const response = await sendRating(item.id, value, guestSessionId);
       if (response?.success) {
-        setInfo(`Рейтинг ${value} успешно отправлен для фильма ID ${item.id}`);
+        ShowInfoNotification('Рейтинг успешно отправлен');
         setIsRated(true);
       } else {
-        setError('Не удалось отправить рейтинг');
+        ShowErrorNotification('Не удалось отправить рейтинг');
       }
 
       savedRatings[item.id] = value;
     } else {
       delete savedRatings[item.id];
-      setInfo(`Рейтинг удалён для фильма ID ${item.id}`);
+      ShowInfoNotification('Рейтинг удалён');
     }
 
     localStorage.setItem('rated_movies', JSON.stringify(savedRatings));

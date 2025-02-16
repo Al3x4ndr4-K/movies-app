@@ -71,11 +71,18 @@ export const RatedMoviesProvider = ({ children }) => {
     }
 
     try {
-      setRatedMovies((prevMovies) =>
-        prevMovies.map((movie) => (movie.id === movieId ? { ...movie, rating: rating } : movie))
-      );
+      setRatedMovies((prevMovies) => {
+        const isMovieRated = prevMovies.some((movie) => movie.id === movieId);
+        if (isMovieRated) {
+          return prevMovies.map((movie) => (movie.id === movieId ? { ...movie, rating } : movie));
+        } else {
+          return [{ id: movieId, rating }, ...prevMovies];
+        }
+      });
 
       await sendRating(movieId, rating, sessionId);
+
+      fetchRatedMovies();
     } catch (err) {
       ShowErrorNotification('Ошибка при выставлении рейтинга');
     }

@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import handleApiError from '../utils/apiErrorHandler.jsx';
+
 export const imagePath = 'https://image.tmdb.org/t/p/w500';
 
 export const baseUrl = 'https://api.themoviedb.org/3';
@@ -17,12 +19,8 @@ export const fetchAllMovies = async (page = 1) => {
       results: data?.results || [],
       totalResults: data?.total_results || 0,
     };
-  } catch (err) {
-    console.error('API Error:', err.response ? err.response.data : err.message);
-    return {
-      results: [],
-      totalResults: 0,
-    };
+  } catch (error) {
+    return handleApiError(error, 'Ошибка загрузки фильмов');
   }
 };
 
@@ -46,12 +44,8 @@ export const searchData = async (query, page = 1) => {
     );
     tvResults = tvRes?.data?.results || [];
     totalTvResults = tvRes?.data?.total_results || 0;
-  } catch (err) {
-    console.log('API Error:', err.response ? err.response.data : err.message);
-    return {
-      results: [],
-      totalResults: 0,
-    };
+  } catch (error) {
+    return handleApiError(error, 'Ошибка поиска');
   }
 
   const combinedResults = [...movieResults, ...tvResults];
@@ -83,8 +77,7 @@ export const fetchGenres = async () => {
       return acc;
     }, {});
   } catch (error) {
-    console.error('Ошибка при загрузке жанров:', error.response ? error.response.data : error.message);
-    return {};
+    return handleApiError(error, 'Ошибка при загрузке жанров');
   }
 };
 
@@ -100,11 +93,10 @@ export const fetchGuestSession = async () => {
     localStorage.setItem('guestSessionId', guestSessionId);
     localStorage.setItem('sessionExpiresAt', expiresAt);
 
-    console.log('Guest Session created:', guestSessionId);
-    return guestSessionId;
+    // console.log('Guest Session created:', guestSessionId);
+    return { guestSessionId, errorComponent: null };
   } catch (error) {
-    console.error('Error fetching guest session:', error.response ? error.response.data : error.message);
-    return null;
+    return handleApiError(error, 'Ошибка создания гостевой сессии');
   }
 };
 
@@ -117,14 +109,16 @@ export const getValidGuestSession = async () => {
     const expiresAt = parseInt(storedExpiresAt, 10);
 
     if (currentTime < expiresAt) {
-      console.log('Используем существующую гостевую сессию:', storedSessionId);
+      // console.log('Используем существующую гостевую сессию:', storedSessionId);
       return storedSessionId;
     }
   }
 
-  console.log('Создаём новую гостевую сессию...');
-  return fetchGuestSession();
+  // console.log('Создаём новую гостевую сессию...');
+  return await fetchGuestSession();
 };
+
+// RATING
 
 export const sendRating = async (movieId, rating, guestSessionId) => {
   try {
@@ -139,10 +133,9 @@ export const sendRating = async (movieId, rating, guestSessionId) => {
       },
     });
 
-    console.log('Rating Response:', data);
+    // console.log('Rating Response:', data);
     return data;
   } catch (error) {
-    console.error('Error sending rating:', error.response ? error.response.data : error.message);
-    return null;
+    return handleApiError(error, 'Ошибка отправки рейтинга');
   }
 };

@@ -1,9 +1,11 @@
 import { Alert } from 'antd';
 
-const ErrorAlert = ({ message }) => {
-  if (!message) return null;
+const ErrorAlert = ({ message, onClose }) => {
+  if (!message || message.trim() === '') return null;
 
-  return <Alert message={message} type="error" showIcon style={{ marginBottom: '20px' }} />;
+  return (
+    <Alert message="Ошибка" description={message} type="error" banner={true} showIcon closable onClose={onClose} />
+  );
 };
 
 export default ErrorAlert;

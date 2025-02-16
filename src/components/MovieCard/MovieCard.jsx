@@ -11,6 +11,8 @@ const { Title } = Typography;
 const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
   const [rating, setRating] = useState(0);
   const [isRated, setIsRated] = useState(false);
+  const [error, setError] = useState(null);
+  const [info, setInfo] = useState(null);
 
   const ratingValue = Number(item?.vote_average).toFixed(1);
 
@@ -31,7 +33,7 @@ const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
 
   const handleRateChange = async (value) => {
     if (isRated) {
-      console.log('Рейтинг уже установлен и не может быть изменён');
+      setError('Рейтинг уже установлен и не может быть изменён');
       return;
     }
 
@@ -41,22 +43,22 @@ const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
     if (value > 0) {
       const guestSessionId = await getValidGuestSession();
       if (!guestSessionId) {
-        console.error('Гостевая сессия недоступна');
+        setError('Гостевая сессия недоступна');
         return;
       }
 
       const response = await sendRating(item.id, value, guestSessionId);
       if (response?.success) {
-        console.log(`Рейтинг ${value} успешно отправлен для фильма ID ${item.id}`);
+        setInfo(`Рейтинг ${value} успешно отправлен для фильма ID ${item.id}`);
         setIsRated(true);
       } else {
-        console.error('Не удалось отправить рейтинг');
+        setError('Не удалось отправить рейтинг');
       }
 
       savedRatings[item.id] = value;
     } else {
       delete savedRatings[item.id];
-      console.log(`Рейтинг удалён для фильма ID ${item.id}`);
+      setInfo(`Рейтинг удалён для фильма ID ${item.id}`);
     }
 
     localStorage.setItem('rated_movies', JSON.stringify(savedRatings));

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import handleApiError from '../utils/apiErrorHandler.jsx';
+import { handleApiError } from './apiErrorHandler.jsx';
 
 export const imagePath = 'https://image.tmdb.org/t/p/w500';
 
@@ -20,7 +20,7 @@ export const fetchAllMovies = async (page = 1) => {
       totalResults: data?.total_results || 0,
     };
   } catch (error) {
-    return handleApiError(error, 'Ошибка загрузки фильмов');
+    handleApiError(error, 'Ошибка загрузки фильмов');
   }
 };
 
@@ -45,7 +45,7 @@ export const searchData = async (query, page = 1) => {
     tvResults = tvRes?.data?.results || [];
     totalTvResults = tvRes?.data?.total_results || 0;
   } catch (error) {
-    return handleApiError(error, 'Ошибка поиска');
+    handleApiError(error, 'Ошибка поиска');
   }
 
   const combinedResults = [...movieResults, ...tvResults];
@@ -77,7 +77,7 @@ export const fetchGenres = async () => {
       return acc;
     }, {});
   } catch (error) {
-    return handleApiError(error, 'Ошибка при загрузке жанров');
+    handleApiError(error, 'Ошибка при загрузке жанров');
   }
 };
 
@@ -96,7 +96,7 @@ export const fetchGuestSession = async () => {
     // console.log('Guest Session created:', guestSessionId);
     return { guestSessionId, errorComponent: null };
   } catch (error) {
-    return handleApiError(error, 'Ошибка создания гостевой сессии');
+    handleApiError(error, 'Ошибка создания гостевой сессии');
   }
 };
 
@@ -109,12 +109,10 @@ export const getValidGuestSession = async () => {
     const expiresAt = parseInt(storedExpiresAt, 10);
 
     if (currentTime < expiresAt) {
-      // console.log('Используем существующую гостевую сессию:', storedSessionId);
       return storedSessionId;
     }
   }
 
-  // console.log('Создаём новую гостевую сессию...');
   return await fetchGuestSession();
 };
 
@@ -133,9 +131,8 @@ export const sendRating = async (movieId, rating, guestSessionId) => {
       },
     });
 
-    // console.log('Rating Response:', data);
     return data;
   } catch (error) {
-    return handleApiError(error, 'Ошибка отправки рейтинга');
+    handleApiError(error, 'Ошибка отправки рейтинга');
   }
 };

@@ -1,8 +1,7 @@
 import { Offline } from 'react-detect-offline';
 import { Tabs } from 'antd';
 
-import ErrorAlert from '../../utils/ErrorAlert.jsx';
-import LoadingSpinner from '../../utils/LoadingSpinner.jsx';
+import LoadingSpinner from '../Spinner/LoadingSpinner.jsx';
 import { useMovies } from '../../hooks/useMovies.jsx';
 import { useRatedMovies } from '../../hooks/useRatedMovies.jsx';
 import useGuestSession from '../../hooks/useGuestSession.jsx';
@@ -27,9 +26,8 @@ const Layout = () => {
     <section style={{ margin: '0 auto', maxWidth: '1000px' }}>
       <LoadingSpinner isLoading={isLoading} />
       <Offline>
-        <ErrorAlert message="Что-то интернета нет..." />
+        <showErrorNotification message="Что-то интернета нет..." />
       </Offline>
-
       <Tabs
         defaultActiveKey="search"
         onChange={(key) => key === 'rated' && fetchRatedMovies(ratedPage)}

@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 import { apiKey, baseUrl, getValidGuestSession } from '../api/apiConfig.jsx';
+import { handleApiError } from '../api/apiErrorHandler.jsx';
+import ShowInfoNotification from '../notifications/ShowInfoNotification.jsx';
+import ShowWarningNotification from '../notifications/ShowWarningNotification.jsx';
 
 import { useFetchMovies } from './useFetchMovies.jsx';
 
@@ -13,7 +16,6 @@ export const useRatedMovies = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [warning, setWarning] = useState(null);
-
   const fetchRatedMovies = async (page = 1) => {
     setIsLoading(true);
     setError(null);
@@ -21,14 +23,14 @@ export const useRatedMovies = () => {
 
     const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
     if (Object.keys(savedRatings).length === 0) {
-      setWarning('Нет оценённых фильмов');
+      ShowWarningNotification('Нет оценённых фильмов');
       setIsLoading(false);
       return;
     }
 
     const guestSessionId = await getValidGuestSession();
     if (!guestSessionId) {
-      setError('Гостевая сессия недоступна');
+      handleApiError(error, 'Гостевая сессия недоступна');
       setIsLoading(false);
       return;
     }
@@ -41,12 +43,12 @@ export const useRatedMovies = () => {
         setRatedMovies(data.results);
         setTotalRatedResults(data.total_results);
       } else {
-        setWarning('Нет оценённых фильмов');
+        ShowInfoNotification('Нет оценённых фильмов');
         setRatedMovies([]);
         setTotalRatedResults(0);
       }
     } catch {
-      setError('Ошибка загрузки оценённых фильмов.');
+      handleApiError(error, 'Ошибка загрузки оценённых фильмов.');
     } finally {
       setIsLoading(false);
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { fetchAllMovies, searchData } from '../api/apiConfig.jsx';
+import { handleApiError } from '../api/apiErrorHandler.jsx';
 
 import { useFetchMovies } from './useFetchMovies.jsx';
 
@@ -27,12 +28,10 @@ export const useMovies = () => {
           movieData = await fetchAllMovies(page);
         }
 
-        console.log('Fetched movies:', movieData); // Проверяем, что получаем
-
         setMovies(Array.isArray(movieData.results) ? movieData.results : []);
         setTotalResults(movieData.totalResults || 0);
-      } catch (err) {
-        setError('Ошибка загрузки фильмов. Попробуйте позже.');
+      } catch (error) {
+        handleApiError(error, 'Ошибка загрузки фильмов. Попробуйте позже.');
       } finally {
         setIsLoading(false);
       }

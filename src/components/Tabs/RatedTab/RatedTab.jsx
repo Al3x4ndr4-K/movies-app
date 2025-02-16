@@ -1,26 +1,25 @@
-import LoadingSpinner from '../../../utils/LoadingSpinner.jsx';
-import ErrorAlert from '../../../utils/ErrorAlert.jsx';
-import WarningAlert from '../../../utils/WarningAlert.jsx';
+import { useContext, useEffect } from 'react';
+
 import MovieList from '../../MovieList/MovieList.jsx';
 import PaginationComponent from '../../Pagination/Pagination.jsx';
+import { RatedMoviesContext } from '../../../context/RatedMoviesContext.jsx';
+import LoadingSpinner from '../../Spinner/LoadingSpinner.jsx';
+import ShowErrorNotification from '../../../notifications/ShowErrorNotification.jsx';
 
-const RatedTab = ({
-  ratedMovies,
-  totalRatedResults,
-  ratedPage,
-  setRatedPage,
-  isLoading,
-  error,
-  warning,
-  fetchRatedMovies,
-  genres,
-}) => {
+const RatedTab = () => {
+  const { ratedMovies, totalRatedResults, ratedPage, setRatedPage, error, genres, isLoading } =
+    useContext(RatedMoviesContext);
+
+  useEffect(() => {
+    if (error) {
+      ShowErrorNotification(error);
+    }
+  }, [error]);
+
   return (
     <>
-      <LoadingSpinner isLoading={isLoading} />
-      {error && <ErrorAlert message={error} />}
-      {warning && <WarningAlert message={warning} />}
-      <MovieList movies={ratedMovies} genres={genres} showRatedOnly={true} onUpdateRatedMovies={fetchRatedMovies} />
+      {isLoading && <LoadingSpinner />}
+      <MovieList movies={ratedMovies} genres={genres} />
       <PaginationComponent
         currentPage={ratedPage}
         totalResults={totalRatedResults}

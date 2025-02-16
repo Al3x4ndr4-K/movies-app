@@ -1,25 +1,29 @@
 import { createContext, useEffect, useState } from 'react';
 
 import { getValidGuestSession } from '../api/apiConfig.jsx';
+import ShowErrorNotification from '../notifications/ShowErrorNotification.jsx';
 
 export const GuestSessionContext = createContext();
 
 export const GuestSessionProvider = ({ children }) => {
   const [sessionId, setSessionId] = useState(null);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchSession = async () => {
       try {
         const session = await getValidGuestSession();
-        setSessionId(session);
+        if (typeof session === 'string') {
+          setSessionId(session);
+        } else {
+          ShowErrorNotification('Некорректный sessionId');
+        }
       } catch (err) {
-        setError('Ошибка гостевой сессии');
+        ShowErrorNotification('Ошибка гостевой сессии');
       }
     };
 
     fetchSession();
   }, []);
 
-  return <GuestSessionContext.Provider value={{ sessionId, error }}>{children}</GuestSessionContext.Provider>;
+  return <GuestSessionContext.Provider value={{ sessionId }}>{children}</GuestSessionContext.Provider>;
 };

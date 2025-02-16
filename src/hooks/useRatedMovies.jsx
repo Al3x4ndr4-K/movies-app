@@ -4,7 +4,6 @@ import axios from 'axios';
 import { apiKey, baseUrl, getValidGuestSession } from '../api/apiConfig.jsx';
 import { handleApiError } from '../api/apiErrorHandler.jsx';
 import ShowInfoNotification from '../notifications/ShowInfoNotification.jsx';
-import ShowWarningNotification from '../notifications/ShowWarningNotification.jsx';
 
 import { useFetchMovies } from './useFetchMovies.jsx';
 
@@ -16,14 +15,16 @@ export const useRatedMovies = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [warning, setWarning] = useState(null);
+
   const fetchRatedMovies = async (page = 1) => {
+    if (isLoading) return;
+
     setIsLoading(true);
     setError(null);
     setWarning(null);
 
     const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
     if (Object.keys(savedRatings).length === 0) {
-      ShowWarningNotification('Нет оценённых фильмов');
       setIsLoading(false);
       return;
     }

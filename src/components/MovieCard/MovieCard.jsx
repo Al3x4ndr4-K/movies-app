@@ -1,19 +1,15 @@
 import { Image, Rate, Typography } from 'antd';
-import { useEffect, useState } from 'react';
 
-import { getValidGuestSession, imagePath, sendRating } from '../../api/apiConfig.jsx';
+import { imagePath } from '../../api/apiConfig.jsx';
 import MovieDate from '../MovieDate/MovieDate.jsx';
 import MovieGenres from '../MovieGenres/MovieGenres.jsx';
 import MovieOverview from '../MovieOverview/MovieOverview.jsx';
-import ShowErrorNotification from '../../notifications/ShowErrorNotification.jsx';
-import ShowInfoNotification from '../../notifications/ShowInfoNotification.jsx';
+import useMovieRating from '../../hooks/useMovieRating.jsx';
 
 const { Title } = Typography;
 
 const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
-  const [rating, setRating] = useState(0);
-  const [isRated, setIsRated] = useState(false);
-
+  const { rating, isRated, handleRateChange } = useMovieRating(item.id, onUpdateRatedMovies);
   const ratingValue = Number(item?.vote_average).toFixed(1);
 
   const ratingColor = (ratingValue) => {
@@ -21,55 +17,6 @@ const MovieCard = ({ item, genres = {}, onUpdateRatedMovies }) => {
     if (ratingValue >= 5) return '#E9D100';
     if (ratingValue >= 3) return '#E97E00';
     return '#E90000';
-  };
-
-  useEffect(() => {
-    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
-    if (savedRatings[item.id]) {
-      setRating(savedRatings[item.id]);
-      setIsRated(true);
-    }
-  }, [item.id]);
-
-  const handleRateChange = async (value) => {
-    if (onUpdateRatedMovies) {
-      onUpdateRatedMovies();
-    }
-
-    if (isRated) {
-      ShowErrorNotification('Рейтинг уже установлен и не может быть изменён');
-      return;
-    }
-
-    setRating(value);
-
-    const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};
-    if (value > 0) {
-      const guestSessionId = await getValidGuestSession();
-      if (!guestSessionId) {
-        ShowErrorNotification('Гостевая сессия недоступна');
-        return;
-      }
-
-      const response = await sendRating(item.id, value, guestSessionId);
-      if (response?.success) {
-        ShowInfoNotification('Рейтинг успешно отправлен');
-        setIsRated(true);
-      } else {
-        ShowErrorNotification('Не удалось отправить рейтинг');
-      }
-
-      savedRatings[item.id] = value;
-    } else {
-      delete savedRatings[item.id];
-      ShowInfoNotification('Рейтинг удалён');
-    }
-
-    localStorage.setItem('rated_movies', JSON.stringify(savedRatings));
-
-    if (onUpdateRatedMovies) {
-      onUpdateRatedMovies();
-    }
   };
 
   return (

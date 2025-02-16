@@ -29,10 +29,13 @@ export const RatedMoviesProvider = ({ children }) => {
 
   const fetchRatedMovies = async () => {
     setIsLoading(true);
+
     try {
       const sessionId = await getValidGuestSession();
+
       if (!sessionId) {
         ShowErrorNotification('Ошибка получения гостевой сессии');
+        setIsLoading(false);
         return;
       }
 
@@ -40,10 +43,23 @@ export const RatedMoviesProvider = ({ children }) => {
         `https://api.themoviedb.org/3/guest_session/${sessionId}/rated/movies?api_key=${import.meta.env.VITE_API_KEY}&page=${ratedPage}`
       );
 
+      if (res.status === 401) {
+        ShowErrorNotification('Сессия недействительна, создаём новую...');
+        localStorage.removeItem('guestSessionId');
+        localStorage.removeItem('sessionExpiresAt');
+
+        const newSessionId = await getValidGuestSession();
+
+        if (newSessionId) {
+          fetchRatedMovies();
+        }
+        setIsLoading(false);
+        return;
+      }
+
       if (res.status === 404) {
         setRatedMovies([]);
         setTotalRatedResults(0);
-        ShowErrorNotification('Нет оценённых фильмов');
         setIsLoading(false);
         return;
       }
@@ -87,10 +103,6 @@ export const RatedMoviesProvider = ({ children }) => {
       ShowErrorNotification('Ошибка при выставлении рейтинга');
     }
   };
-
-  useEffect(() => {
-    console.log('Rated movies updated:', ratedMovies);
-  }, [ratedMovies]);
 
   return (
     <RatedMoviesContext.Provider

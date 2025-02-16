@@ -93,7 +93,6 @@ export const fetchGuestSession = async () => {
     localStorage.setItem('guestSessionId', guestSessionId);
     localStorage.setItem('sessionExpiresAt', expiresAt);
 
-    // console.log('Guest Session created:', guestSessionId);
     return { guestSessionId, errorComponent: null };
   } catch (error) {
     handleApiError(error, 'Ошибка создания гостевой сессии');
@@ -109,11 +108,12 @@ export const getValidGuestSession = async () => {
     const expiresAt = parseInt(storedExpiresAt, 10);
 
     if (currentTime < expiresAt) {
-      return storedSessionId;
+      return storedSessionId; // Здесь возвращаем только строку, а не объект
     }
   }
 
-  return await fetchGuestSession();
+  const sessionData = await fetchGuestSession();
+  return sessionData?.guestSessionId || null; // Возвращаем только строку ID
 };
 
 // RATING

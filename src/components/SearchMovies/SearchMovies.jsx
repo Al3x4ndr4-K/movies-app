@@ -3,7 +3,6 @@ import { useCallback, useState } from 'react';
 import { debounce } from 'lodash';
 
 import { searchData } from '../../api/apiConfig.jsx';
-import LoadingSpinner from '../Spinner/LoadingSpinner.jsx';
 
 const SearchMovies = ({ onSearch, page, query }) => {
   const [searchValue, setSearchValue] = useState(query);
@@ -34,10 +33,6 @@ const SearchMovies = ({ onSearch, page, query }) => {
     setSearchValue(newValue);
     debouncedSearch(newValue, 1);
   };
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
 
   return (
     <div>

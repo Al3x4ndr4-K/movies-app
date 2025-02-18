@@ -25,5 +25,3 @@ const MovieList = ({ movies, genres }) => {
 };
 
 export default MovieList;
-
-//

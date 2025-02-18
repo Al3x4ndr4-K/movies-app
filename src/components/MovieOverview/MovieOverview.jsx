@@ -23,5 +23,3 @@ const MovieOverview = ({ overview }) => {
 };
 
 export default MovieOverview;
-
-// style={{ marginTop: '8px', fontSize: '12px' }}

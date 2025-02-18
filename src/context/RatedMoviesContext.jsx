@@ -2,6 +2,7 @@ import { createContext, useEffect, useState } from 'react';
 
 import { getValidGuestSession, sendRating } from '../api/apiConfig.jsx';
 import ShowErrorNotification from '../notifications/ShowErrorNotification.jsx';
+import ShowWarningNotification from '../notifications/ShowWarningNotification.jsx';
 
 export const RatedMoviesContext = createContext();
 
@@ -10,7 +11,7 @@ export const RatedMoviesProvider = ({ children }) => {
   const [ratedPage, setRatedPage] = useState(1);
   const [totalRatedResults, setTotalRatedResults] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
   const [genres, setGenres] = useState({});
 
   const fetchGenres = async () => {
@@ -27,7 +28,7 @@ export const RatedMoviesProvider = ({ children }) => {
     }
   };
 
-  const fetchRatedMovies = async () => {
+  const fetchRatedMovies = async (page = 1) => {
     setIsLoading(true);
 
     try {
@@ -44,14 +45,14 @@ export const RatedMoviesProvider = ({ children }) => {
       );
 
       if (res.status === 401) {
-        ShowErrorNotification('Сессия недействительна, создаём новую...');
+        ShowWarningNotification('Сессия недействительна, создаём новую...');
         localStorage.removeItem('guestSessionId');
         localStorage.removeItem('sessionExpiresAt');
 
         const newSessionId = await getValidGuestSession();
 
         if (newSessionId) {
-          fetchRatedMovies();
+          fetchRatedMovies(page);
         }
         setIsLoading(false);
         return;
@@ -102,11 +103,7 @@ export const RatedMoviesProvider = ({ children }) => {
 
       await sendRating(movieId, rating, sessionId);
 
-      setTimeout(() => {
-        if (!ratedMovies.some((movie) => movie.id === movieId)) {
-          fetchRatedMovies();
-        }
-      }, 1500);
+      fetchRatedMovies();
     } catch (err) {
       ShowErrorNotification('Ошибка при выставлении рейтинга');
     }

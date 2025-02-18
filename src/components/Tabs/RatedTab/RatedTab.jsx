@@ -25,6 +25,7 @@ const RatedTab = () => {
         totalResults={totalRatedResults}
         pageSize={20}
         onPageChange={setRatedPage}
+        fetchRatedMovies={fetchRatedMovies}
       />
     </>
   );

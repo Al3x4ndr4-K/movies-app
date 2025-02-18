@@ -16,10 +16,6 @@ const RatedTab = () => {
     }
   }, [error]);
 
-  useEffect(() => {
-    console.log('Rated movies updated:', ratedMovies);
-  }, [ratedMovies]);
-
   return (
     <>
       {isLoading && <LoadingSpinner />}

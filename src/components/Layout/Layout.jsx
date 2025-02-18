@@ -1,5 +1,5 @@
-import { Offline } from 'react-detect-offline';
-import { Tabs } from 'antd';
+import { notification, Tabs } from 'antd';
+import { useEffect } from 'react';
 
 import LoadingSpinner from '../Spinner/LoadingSpinner.jsx';
 import { useMovies } from '../../hooks/useMovies.jsx';
@@ -22,13 +22,27 @@ const Layout = () => {
   } = useRatedMovies();
   const { error: sessionError } = useGuestSession();
 
+  useEffect(() => {
+    const handleOffline = () => {
+      notification.error({
+        message: 'Нет подключения к интернету',
+        placement: 'topRight',
+        duration: 3,
+      });
+    };
+
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
-    <section style={{ margin: '0 auto', maxWidth: '1000px' }}>
+    <section className="m-auto max-w-[1000px]">
       <LoadingSpinner isLoading={isLoading} />
-      <Offline>
-        <showErrorNotification message="Что-то интернета нет..." />
-      </Offline>
       <Tabs
+        centered={true}
         defaultActiveKey="search"
         onChange={(key) => key === 'rated' && fetchRatedMovies(ratedPage)}
         items={[

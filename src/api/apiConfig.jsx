@@ -108,12 +108,12 @@ export const getValidGuestSession = async () => {
     const expiresAt = parseInt(storedExpiresAt, 10);
 
     if (currentTime < expiresAt) {
-      return storedSessionId; // Здесь возвращаем только строку, а не объект
+      return storedSessionId;
     }
   }
 
   const sessionData = await fetchGuestSession();
-  return sessionData?.guestSessionId || null; // Возвращаем только строку ID
+  return sessionData?.guestSessionId || null;
 };
 
 // RATING

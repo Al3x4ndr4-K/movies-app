@@ -17,11 +17,6 @@ const useMovieRating = (movieId, onUpdateRatedMovies) => {
   }, [movieId]);
 
   const handleRateChange = async (value) => {
-    if (isRated) {
-      ShowErrorNotification('Рейтинг уже установлен и не может быть изменён');
-      return;
-    }
-
     setRating(value);
 
     const savedRatings = JSON.parse(localStorage.getItem('rated_movies')) || {};

@@ -64,7 +64,7 @@ export const RatedMoviesProvider = ({ children }) => {
         return;
       }
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       setRatedMovies(data.results || []);
       setTotalRatedResults(data.total_results || 0);
     } catch (err) {
@@ -76,7 +76,11 @@ export const RatedMoviesProvider = ({ children }) => {
 
   useEffect(() => {
     fetchGenres();
-    fetchRatedMovies();
+
+    const sessionId = localStorage.getItem('guestSessionId');
+    if (sessionId) {
+      fetchRatedMovies();
+    }
   }, [ratedPage]);
 
   const rateMovie = async (movieId, rating) => {
@@ -98,7 +102,11 @@ export const RatedMoviesProvider = ({ children }) => {
 
       await sendRating(movieId, rating, sessionId);
 
-      fetchRatedMovies();
+      setTimeout(() => {
+        if (!ratedMovies.some((movie) => movie.id === movieId)) {
+          fetchRatedMovies();
+        }
+      }, 1500);
     } catch (err) {
       ShowErrorNotification('Ошибка при выставлении рейтинга');
     }

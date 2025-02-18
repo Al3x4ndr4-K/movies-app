@@ -1,2 +1,2 @@
-Making Movie application using react and vite
+https://movies-app-kappa-wine.vercel.app/
 
